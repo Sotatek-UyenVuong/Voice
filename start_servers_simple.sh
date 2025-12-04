@@ -1,0 +1,25 @@
+#!/bin/bash
+# Simple script to start servers in separate terminals
+
+echo "🚀 Starting Voice Agent Restaurant - Simple Mode"
+echo "================================================"
+echo ""
+echo "📋 Instructions:"
+echo ""
+echo "1️⃣  Terminal 1 - Token Server:"
+echo "   cd /Users/uyenvuong/Downloads/demo_voice"
+echo "   python server.py"
+echo ""
+echo "2️⃣  Terminal 2 - Restaurant Agent:"
+echo "   cd /Users/uyenvuong/Downloads/demo_voice"
+echo "   python restaurant_agent.py dev"
+echo ""
+echo "3️⃣  Terminal 3 - React Web Client:"
+echo "   cd /Users/uyenvuong/Downloads/demo_voice/web-client-react"
+echo "   npm run dev"
+echo ""
+echo "================================================"
+echo ""
+echo "🛑 To stop: Press Ctrl+C in each terminal"
+echo ""
+

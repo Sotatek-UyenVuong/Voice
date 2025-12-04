@@ -1,0 +1,41 @@
+# Environment variables
+.env
+.env.*
+*.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+.venv/
+env/
+.env/
+
+# IDE settings
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Byte-compiled / optimized / DLL files
+*.so
+*.dll
+*.dylib
+
+# Mac / Linux system files
+.DS_Store
+Thumbs.db
+
+# Local configs
+*.local
+*.config
+
+# Build files
+build/
+dist/
+*.egg-info/

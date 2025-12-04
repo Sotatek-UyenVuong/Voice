@@ -1,0 +1,32 @@
+{
+  "pho": {
+    "name": "Phở",
+    "price": 35000,
+    "quantity": 15
+  },
+  "bun bo hue": {
+    "name": "Bún bò Huế",
+    "price": 40000,
+    "quantity": 12
+  },
+  "banh mi": {
+    "name": "Bánh mì",
+    "price": 25000,
+    "quantity": 20
+  },
+  "com tam": {
+    "name": "Cơm tấm",
+    "price": 35000,
+    "quantity": 15
+  },
+  "goi cuon": {
+    "name": "Gỏi cuốn",
+    "price": 30000,
+    "quantity": 18
+  },
+  "ca phe sua da": {
+    "name": "Cà phê sữa đá",
+    "price": 20000,
+    "quantity": 25
+  }
+}

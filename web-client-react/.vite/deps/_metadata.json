@@ -1,0 +1,31 @@
+{
+  "hash": "f860b58d",
+  "configHash": "a975d721",
+  "lockfileHash": "d0614e24",
+  "browserHash": "17527090",
+  "optimized": {
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "527d9e3e",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "b9ca98b0",
+      "needsInterop": true
+    },
+    "@livekit/components-react": {
+      "src": "../../node_modules/@livekit/components-react/dist/index.mjs",
+      "file": "@livekit_components-react.js",
+      "fileHash": "a3e215a9",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-3PPUDOJL": {
+      "file": "chunk-3PPUDOJL.js"
+    }
+  }
+}
