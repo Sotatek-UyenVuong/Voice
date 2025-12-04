@@ -1,5 +1,6 @@
 import logging
 import json
+import unicodedata
 from dataclasses import dataclass, field
 from typing import Annotated, Optional
 
@@ -88,10 +89,19 @@ INVENTORY_FILE = "/home/sotatek/Documents/Uyen/demo_voice/inventory.json"
 def load_inventory() -> dict:
     """Load inventory from JSON file"""
     try:
-        with open(INVENTORY_FILE, 'r') as f:
-            return json.load(f)
+        logger.info(f"📂 Loading inventory from: {INVENTORY_FILE}")
+        with open(INVENTORY_FILE, 'r', encoding='utf-8') as f:
+            inventory = json.load(f)
+        logger.info(f"✅ Inventory loaded successfully: {list(inventory.keys())}")
+        return inventory
     except FileNotFoundError:
-        logger.error(f"Inventory file not found: {INVENTORY_FILE}")
+        logger.error(f"❌ Inventory file not found: {INVENTORY_FILE}")
+        return {}
+    except json.JSONDecodeError as e:
+        logger.error(f"❌ Invalid JSON in inventory file: {e}")
+        return {}
+    except Exception as e:
+        logger.error(f"❌ Error loading inventory: {e}")
         return {}
 
 def save_inventory(inventory: dict) -> None:
@@ -103,21 +113,58 @@ def save_inventory(inventory: dict) -> None:
     except Exception as e:
         logger.error(f"Failed to save inventory: {e}")
 
+def normalize_item_name(name: str) -> str:
+    """Normalize item name: remove quotes, accents, convert to lowercase"""
+    # Remove quotes
+    name = name.strip().strip("'\"")
+    # Convert to lowercase
+    name = name.lower()
+    # Remove Vietnamese accents
+    nfd = unicodedata.normalize('NFD', name)
+    name = ''.join(char for char in nfd if unicodedata.category(char) != 'Mn')
+    return name
+
+def find_inventory_key(item_name: str, inventory: dict) -> Optional[str]:
+    """Find matching inventory key for item name (supports partial matching)"""
+    normalized_input = normalize_item_name(item_name)
+    logger.info(f"🔍 Looking for '{item_name}' → normalized: '{normalized_input}'")
+    
+    # Try exact match
+    if normalized_input in inventory:
+        logger.info(f"✅ Exact match found: '{normalized_input}'")
+        return normalized_input
+    
+    # Try partial match - check if input is in any key or vice versa
+    for key in inventory.keys():
+        if normalized_input in key or key in normalized_input:
+            logger.info(f"✅ Partial match found: '{key}' matches '{normalized_input}'")
+            return key
+        # Check if they start with the same words
+        if normalized_input.startswith(key) or key.startswith(normalized_input):
+            logger.info(f"✅ Prefix match found: '{key}' matches '{normalized_input}'")
+            return key
+    
+    logger.warning(f"❌ No match found for '{normalized_input}' in inventory keys: {list(inventory.keys())}")
+    return None
+
 def check_availability(inventory: dict, order: dict[str, int]) -> tuple[bool, str]:
     """
     Check if items are available in sufficient quantity
     Returns: (is_available, message)
     """
     for item_name, quantity in order.items():
-        item_key = item_name.lower()
-        if item_key not in inventory:
+        item_key = find_inventory_key(item_name, inventory)
+        
+        if item_key is None:
             return False, f"Sản phẩm '{item_name}' không có trong menu / Item '{item_name}' is not in the menu"
         
         available = inventory[item_key]["quantity"]
+        display_name = inventory[item_key]["name"]
+        
         if available < quantity:
             return False, (
-                f"Xin lỗi, chỉ còn {available} {item_name}, không đủ {quantity} / "
-                f"Sorry, only {available} {item_name} available, not enough for {quantity}"
+                f"Xin lỗi, chỉ còn {available} {display_name}, không đủ {quantity} / "
+                f"Sorry, only {available} {display_name} available, not enough for {quantity}"
             )
     
     return True, "Đủ hàng / Available"
@@ -125,9 +172,10 @@ def check_availability(inventory: dict, order: dict[str, int]) -> tuple[bool, st
 def deduct_inventory(inventory: dict, order: dict[str, int]) -> dict:
     """Deduct ordered items from inventory"""
     for item_name, quantity in order.items():
-        item_key = item_name.lower()
-        if item_key in inventory:
+        item_key = find_inventory_key(item_name, inventory)
+        if item_key and item_key in inventory:
             inventory[item_key]["quantity"] -= quantity
+            logger.info(f"✅ Deducted {quantity}x {inventory[item_key]['name']}, remaining: {inventory[item_key]['quantity']}")
     return inventory
 
 
@@ -329,15 +377,26 @@ class Takeaway(BaseAgent):
         The items should be a dictionary with item names as keys and quantities as values."""
         userdata = context.userdata
         
+        # Debug logging
+        logger.info(f"🛒 Order requested: {items}")
+        logger.info(f"📦 Current inventory: {userdata.inventory}")
+        
+        # Check if inventory is loaded
+        if not userdata.inventory:
+            logger.error("❌ Inventory is empty!")
+            return "❌ Lỗi hệ thống: Không thể kiểm tra kho hàng / System error: Cannot check inventory"
+        
         # Check if items are available in sufficient quantity
         is_available, message = check_availability(userdata.inventory, items)
         
         if not is_available:
+            logger.warning(f"❌ Not available: {message}")
             return f"❌ {message}"
         
         # Update order if available
         userdata.order = items
         order_summary = ", ".join([f"{qty}x {item}" for item, qty in items.items()])
+        logger.info(f"✅ Order updated: {order_summary}")
         return f"✅ Đơn hàng đã cập nhật / Order updated: {order_summary}"
 
     @function_tool()
@@ -348,9 +407,9 @@ class Takeaway(BaseAgent):
     ) -> str:
         """Called when the user asks about stock availability or how many items are left."""
         userdata = context.userdata
-        item_key = item_name.lower()
+        item_key = find_inventory_key(item_name, userdata.inventory)
         
-        if item_key in userdata.inventory:
+        if item_key and item_key in userdata.inventory:
             quantity = userdata.inventory[item_key]["quantity"]
             name = userdata.inventory[item_key]["name"]
             return f"Còn {quantity} {name} / We have {quantity} {name} available"

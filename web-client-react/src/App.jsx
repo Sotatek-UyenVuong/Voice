@@ -9,7 +9,6 @@ const SERVER_URL = window.location.hostname === 'localhost' || window.location.h
 
 function VoiceAssistantUI() {
   const { state } = useVoiceAssistant();
-  const [isMuted, setIsMuted] = useState(false);
   const [isMicEnabled, setIsMicEnabled] = useState(true);
   const [messages, setMessages] = useState([]);
   const [currentUserText, setCurrentUserText] = useState('');
@@ -51,6 +50,19 @@ function VoiceAssistantUI() {
         setCurrentAiText(prev => {
           const newText = text;
           console.log('🤖 AI text updated:', newText);
+          
+          // Check if this is a new sentence (text got shorter or completely different)
+          if (prev && newText !== prev) {
+            const isNewSentence = newText.length < prev.length * 0.7 || 
+                                  !newText.startsWith(prev.substring(0, Math.min(20, prev.length)));
+            
+            if (isNewSentence) {
+              // Save the previous sentence before starting a new one
+              console.log('🔄 New sentence detected, saving previous:', prev);
+              setMessages(msgs => [...msgs, { type: 'ai', text: prev }]);
+            }
+          }
+          
           return newText !== prev ? newText : prev;
         });
       }
@@ -87,6 +99,15 @@ function VoiceAssistantUI() {
       }
     }
     
+    // When state changes to thinking, save any current AI text
+    if (state === 'thinking' && savedAiTextRef.current) {
+      const textToSave = savedAiTextRef.current;
+      setTimeout(() => {
+        setMessages(prev => [...prev, { type: 'ai', text: textToSave }]);
+        setCurrentAiText('');
+      }, 0);
+    }
+    
     if (prevState === 'speaking' && state === 'idle') {
       const textToSave = savedAiTextRef.current;
       if (textToSave) {
@@ -97,14 +118,6 @@ function VoiceAssistantUI() {
       }
     }
   }, [state]);
-
-  const toggleMute = () => {
-    if (room) {
-      const enabled = !isMuted;
-      room.localParticipant.setMicrophoneEnabled(enabled);
-      setIsMuted(!enabled);
-    }
-  };
 
   const toggleMicrophone = () => {
     if (room) {
@@ -125,13 +138,6 @@ function VoiceAssistantUI() {
             <div className="header-subtitle">Trợ lý nhà hàng Việt</div>
           </div>
         </div>
-        <button 
-          className={`mute-button ${isMuted ? 'muted' : ''}`}
-          onClick={toggleMute}
-          title={isMuted ? 'Unmute' : 'Mute'}
-        >
-          {isMuted ? '🔇' : '🔊'}
-        </button>
       </div>
 
       {/* Messages */}
@@ -176,11 +182,11 @@ function VoiceAssistantUI() {
         )}
 
         {/* Current AI speech (while speaking) */}
-        {currentAiText && state === 'speaking' && (
+        {currentAiText && (
           <div className="message ai">
             <div className="message-bubble typing">
               {currentAiText}
-              <span className="cursor">|</span>
+              {state === 'speaking' && <span className="cursor">|</span>}
             </div>
           </div>
         )}
