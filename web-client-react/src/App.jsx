@@ -2,13 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { LiveKitRoom, RoomAudioRenderer, useVoiceAssistant, useRoomContext } from '@livekit/components-react';
 import '@livekit/components-styles';
 import './App.css';
+import AnimatedAvatar from './components/AnimatedAvatar';
 
 const SERVER_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-  ? 'https://localhost:8088' 
-  : 'https://192.168.200.22:8088';
+  ? 'http://localhost:8089' 
+  : 'https://192.168.200.22:8089';
 
 function VoiceAssistantUI() {
-  const { state } = useVoiceAssistant();
+  const { state, audioTrack } = useVoiceAssistant(); // Get audioTrack from agent
   const [isMicEnabled, setIsMicEnabled] = useState(true);
   const [messages, setMessages] = useState([]);
   const [currentUserText, setCurrentUserText] = useState('');
@@ -68,10 +69,32 @@ function VoiceAssistantUI() {
       }
     };
 
+    // Debug: Log all room events
+    const handleParticipantConnected = (participant) => {
+      console.log('👋 Participant connected:', participant.identity, participant.isLocal ? '(local)' : '(remote)');
+    };
+
+    const handleParticipantDisconnected = (participant) => {
+      console.log('👋 Participant disconnected:', participant.identity);
+    };
+
+    const handleDisconnected = () => {
+      console.log('🔌 Room disconnected event fired');
+    };
+
     room.on('transcriptionReceived', handleTranscriptionReceived);
+    room.on('participantConnected', handleParticipantConnected);
+    room.on('participantDisconnected', handleParticipantDisconnected);
+    room.on('disconnected', handleDisconnected);
+
+    // Log initial state
+    console.log('🏠 Room connected, participants:', room.remoteParticipants.size);
 
     return () => {
       room.off('transcriptionReceived', handleTranscriptionReceived);
+      room.off('participantConnected', handleParticipantConnected);
+      room.off('participantDisconnected', handleParticipantDisconnected);
+      room.off('disconnected', handleDisconnected);
     };
   }, [room, state]);
 
@@ -129,13 +152,27 @@ function VoiceAssistantUI() {
 
   return (
     <div className="chat-container">
-      {/* Header */}
+      {/* Header with Avatar */}
       <div className="chat-header">
         <div className="header-left">
           <button className="back-button">←</button>
           <div>
             <div className="header-title">🍜 AI Voice</div>
-            <div className="header-subtitle">Trợ lý nhà hàng Việt</div>
+            <div className="header-subtitle">Bistro Bliss Voice Assistant</div>
+          </div>
+        </div>
+        
+        {/* Animated Avatar */}
+        <div className="header-avatar">
+          <AnimatedAvatar 
+            audioTrack={audioTrack}
+            isAgent={true}
+          />
+          <div className="avatar-status">
+            {state === 'speaking' && '🗣️ Speaking...'}
+            {state === 'listening' && '👂 Listening...'}
+            {state === 'thinking' && '🤔 Thinking...'}
+            {state === 'idle' && '💤 Ready...'}
           </div>
         </div>
       </div>
@@ -145,8 +182,8 @@ function VoiceAssistantUI() {
         {messages.length === 0 && !currentUserText && !currentAiText && (
           <div className="empty-state">
             <div className="mic-icon">🎤</div>
-            <h3>Bắt đầu trò chuyện</h3>
-            <p>Nói để đặt món hoặc đặt bàn<br/>Start talking to order or make a reservation</p>
+            <h3>Start Conversation</h3>
+            <p>Start talking to order or make a reservation</p>
           </div>
         )}
 
@@ -199,7 +236,7 @@ function VoiceAssistantUI() {
         <button 
           className={`mic-toggle-button ${!isMicEnabled ? 'disabled' : ''}`}
           onClick={toggleMicrophone}
-          title={isMicEnabled ? 'Tắt microphone' : 'Bật microphone'}
+          title={isMicEnabled ? 'Mute microphone' : 'Unmute microphone'}
         >
           <svg 
             viewBox="0 0 24 24" 
@@ -227,11 +264,11 @@ function VoiceAssistantUI() {
         <div className={`status-indicator ${state} ${!isMicEnabled ? 'mic-off' : ''}`}>
           <div className="status-dot"></div>
           <span className="status-text">
-            {!isMicEnabled && 'Mic tắt'}
-            {isMicEnabled && state === 'listening' && 'Đang nghe...'}
-            {isMicEnabled && state === 'thinking' && 'Đang xử lý...'}
-            {isMicEnabled && state === 'speaking' && 'Đang nói...'}
-            {isMicEnabled && state === 'idle' && 'Nhấn để nói'}
+            {!isMicEnabled && 'Mic Off'}
+            {isMicEnabled && state === 'listening' && 'Listening...'}
+            {isMicEnabled && state === 'thinking' && 'Processing...'}
+            {isMicEnabled && state === 'speaking' && 'Speaking...'}
+            {isMicEnabled && state === 'idle' && 'Press to talk'}
           </span>
         </div>
 
@@ -245,6 +282,21 @@ function VoiceAssistantUI() {
             <div className="bar"></div>
           </div>
         )}
+
+        {/* Disconnect button */}
+        <button 
+          className="disconnect-button"
+          onClick={() => {
+            console.log('🔌 Disconnect button clicked');
+            room.disconnect();
+          }}
+          title="Disconnect"
+        >
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/>
+          </svg>
+          End
+        </button>
       </div>
 
       <RoomAudioRenderer />
@@ -252,13 +304,26 @@ function VoiceAssistantUI() {
   );
 }
 
+// Helper function to generate unique room name with timestamp
+const generateUniqueRoomName = (prefix = 'room') => {
+  const timestamp = Date.now();
+  const randomStr = Math.random().toString(36).substr(2, 5);
+  return `${prefix}-${timestamp}-${randomStr}`;
+};
+
 function App() {
-  const [roomName, setRoomName] = useState('test-room');
+  // Use unique room name by default (with timestamp)
+  const [roomName, setRoomName] = useState(() => generateUniqueRoomName('restaurant'));
   const [userName, setUserName] = useState('web-user');
   const [token, setToken] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // Function to generate new unique room name
+  const generateNewRoomName = () => {
+    setRoomName(generateUniqueRoomName('restaurant'));
+  };
 
   const generateToken = async () => {
     setIsLoading(true);
@@ -284,39 +349,75 @@ function App() {
     }
   };
 
-  const disconnect = () => {
+  const disconnect = async () => {
+    console.log('🔌 Disconnecting from room:', roomName);
+    
+    // Call API to delete room
+    try {
+      const response = await fetch(
+        `${SERVER_URL}/api/room/${encodeURIComponent(roomName)}`,
+        { method: 'DELETE' }
+      );
+      if (response.ok) {
+        console.log('✅ Room deleted successfully');
+      }
+    } catch (err) {
+      console.warn('⚠️ Could not delete room:', err);
+    }
+    
+    // Reset state
     setToken('');
     setIsConnected(false);
+    // Generate new room name for next connection
+    setRoomName(generateUniqueRoomName('restaurant'));
+    console.log('✅ Disconnected successfully');
   };
 
   if (!isConnected) {
     return (
       <div className="app">
         <div className="connect-container">
-          <h1>🍜 Nhà hàng Việt Nam</h1>
-          <p className="subtitle">Vietnamese Restaurant Voice Assistant</p>
+          <h1>🍽️ Bistro Bliss</h1>
+          <p className="subtitle">Restaurant Voice Assistant</p>
           
           <div className="menu-info">
-            <h3>📋 Thực đơn / Menu</h3>
-            <div className="menu-items">
-              <p>🍜 Phở: 35.000đ</p>
-              <p>🍲 Bún bò Huế: 40.000đ</p>
-              <p>🥖 Bánh mì: 25.000đ</p>
-              <p>🍚 Cơm tấm: 35.000đ</p>
-              <p>🥬 Gỏi cuốn: 30.000đ</p>
-              <p>☕ Cà phê sữa đá: 20.000đ</p>
+            <h3>📋 Our Menu</h3>
+            <div className="menu-items" style={{ fontSize: '13px', lineHeight: '1.6' }}>
+              <p><strong>Breakfast:</strong> Pancakes $11.99 | Eggs Benedict $14.99</p>
+              <p><strong>Mains:</strong> Cheeseburger $14.99 | Ribeye $34.99</p>
+              <p><strong>Drinks:</strong> Cappuccino $4.99 | Mojito $12.99</p>
+              <p><strong>Desserts:</strong> Tiramisu $10.99 | Cheesecake $9.99</p>
             </div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="roomName">Room Name</label>
-            <input
-              id="roomName"
-              type="text"
-              value={roomName}
-              onChange={(e) => setRoomName(e.target.value)}
-              placeholder="Enter room name"
-            />
+            <label htmlFor="roomName">
+              Room Name 
+              <span style={{ fontSize: '12px', color: '#666', marginLeft: '8px' }}>
+                ✨ Auto-generated unique name
+              </span>
+            </label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                id="roomName"
+                type="text"
+                value={roomName}
+                onChange={(e) => setRoomName(e.target.value)}
+                placeholder="Enter room name"
+                style={{ flex: 1 }}
+              />
+              <button 
+                onClick={generateNewRoomName}
+                className="generate-room-button"
+                type="button"
+                title="Generate new room name"
+              >
+                🔄
+              </button>
+            </div>
+            <small style={{ color: '#888', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+              💡 Unique room name → Bot auto-joins each session
+            </small>
           </div>
 
           <div className="form-group">
@@ -341,15 +442,15 @@ function App() {
             disabled={isLoading || !roomName}
             className="connect-button"
           >
-            {isLoading ? '⏳ Đang kết nối...' : '🎤 Kết nối & Nói'}
+            {isLoading ? '⏳ Connecting...' : '🎤 Connect & Talk'}
           </button>
 
           <div className="info-box">
-            <h4>💡 Hướng dẫn / Instructions:</h4>
+            <h4>💡 Instructions:</h4>
             <ol>
-              <li>Nhấn "Kết nối & Nói" / Click "Connect & Talk"</li>
-              <li>Cho phép truy cập microphone / Allow microphone access</li>
-              <li>Bắt đầu đặt món / Start ordering</li>
+              <li>Click "Connect & Talk"</li>
+              <li>Allow microphone access</li>
+              <li>Start ordering!</li>
             </ol>
           </div>
         </div>

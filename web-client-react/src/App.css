@@ -83,6 +83,31 @@ body {
   border-color: #667eea;
 }
 
+/* Generate Room Button */
+.generate-room-button {
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+}
+
+.generate-room-button:hover {
+  transform: rotate(180deg) scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.generate-room-button:active {
+  transform: rotate(180deg) scale(0.95);
+}
+
 .connect-button {
   width: 100%;
   padding: 16px;
@@ -177,6 +202,46 @@ body {
   display: flex;
   align-items: center;
   gap: 15px;
+}
+
+/* Avatar in header */
+.header-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-avatar .animated-avatar {
+  border: none;
+  padding: 0;
+  background: transparent;
+}
+
+.header-avatar .avatar-container {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  padding: 8px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.header-avatar .avatar-container:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.avatar-status {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.15);
+  padding: 4px 12px;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  font-weight: 500;
 }
 
 .back-button {
@@ -424,6 +489,40 @@ body {
   background: #c62828;
 }
 
+/* Disconnect Button */
+.disconnect-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 10px 16px;
+  border-radius: 25px;
+  border: none;
+  background: #e53935;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.disconnect-button:hover {
+  background: #c62828;
+  transform: scale(1.05);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+}
+
+.disconnect-button:active {
+  transform: scale(0.95);
+}
+
+.disconnect-button svg {
+  flex-shrink: 0;
+}
 
 @keyframes shake {
   0%, 100% { transform: translateX(0); }

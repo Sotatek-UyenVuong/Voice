@@ -1,27 +1,43 @@
-# Environment variables
-.env
-.env.*
-*.env
-
-# Python cache
+# Python
 __pycache__/
 *.py[cod]
-
-# Virtual environment
-venv/
-.venv/
+*$py.class
+*.so
+.Python
 env/
+venv/
+ENV/
+*.egg-info/
+
+# Environment
+.env
+.env.local
+
+# Logs
+logs/*.log
+*.log
+vite.log
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# Logs
-*.log
-
-# System files
+# OS
 .DS_Store
 Thumbs.db
 
-# Node modules (nếu web-react dùng NodeJS)
+# Node
 node_modules/
+dist/
+*.local
+
+# Certificates (sensitive)
+.cert/
+.cert.backup/
+web-client-react/.cert/
+
+# Misc
+*.pdf
+=24

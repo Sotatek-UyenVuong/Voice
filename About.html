@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Sota Yummy Restaurant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: white;
+            overflow-x: hidden;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            width: 100%;
+            height: 45px;
+            background: #474747;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 150px;
+        }
+
+        .top-bar-info {
+            display: flex;
+            gap: 25px;
+        }
+
+        .top-bar-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #F9F9F7;
+            font-size: 16px;
+        }
+
+        .top-bar-social {
+            display: flex;
+            gap: 4px;
+        }
+
+        .social-icon {
+            width: 27px;
+            height: 27px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            text-decoration: none;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 150px;
+            background: #F9F9F7;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            width: 56px;
+            height: 55px;
+        }
+
+        .logo-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            font-weight: 600;
+            font-style: italic;
+            color: #474747;
+        }
+
+        .nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-link {
+            padding: 4px 16px;
+            border-radius: 34px;
+            color: #2C2F24;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .nav-link:hover {
+            background: #DBDFD0;
+        }
+
+        .nav-link.active {
+            background: #DBDFD0;
+        }
+
+        .btn-book {
+            padding: 12px 24px;
+            border: 1.5px solid #2C2F24;
+            border-radius: 118px;
+            background: transparent;
+            color: #182226;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-book:hover {
+            background: #2C2F24;
+            color: white;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: #F9F9F7;
+            padding: 85px 150px 120px;
+        }
+
+        .hero-content {
+            display: flex;
+            gap: 90px;
+            align-items: center;
+        }
+
+        .hero-image-wrapper {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .hero-main-image {
+            width: 599px;
+            height: 566px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        .hero-info-card {
+            position: absolute;
+            bottom: -50px;
+            right: -150px;
+            background: #474747;
+            border-radius: 12px;
+            padding: 50px;
+            width: 411px;
+        }
+
+        .hero-info-card h3 {
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 45px;
+        }
+
+        .hero-info-item {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+            color: #F9F9F7;
+            font-size: 16px;
+            align-items: flex-start;
+        }
+
+        .hero-info-item svg {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .hero-text {
+            max-width: 557px;
+        }
+
+        .hero-text h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 55px;
+            font-weight: 500;
+            line-height: 60.5px;
+            color: #2C2F24;
+            margin-bottom: 24px;
+        }
+
+        .hero-text p {
+            font-size: 18px;
+            line-height: 28px;
+            color: #2C2F24;
+            font-weight: 500;
+            margin-bottom: 24px;
+        }
+
+        .hero-text .description {
+            font-size: 16px;
+            line-height: 24px;
+            color: #414536;
+            font-weight: 400;
+        }
+
+        /* Video Section */
+        .video-section {
+            background: white;
+            padding: 0;
+        }
+
+        .video-banner {
+            position: relative;
+            width: 100%;
+            height: 690px;
+            background: url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&h=690&fit=crop') center/cover;
+        }
+
+        .video-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(44, 47, 36, 0.84);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .play-button {
+            width: 106px;
+            height: 106px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .play-button:hover {
+            transform: scale(1.1);
+        }
+
+        .play-button svg {
+            width: 40px;
+            height: 40px;
+            margin-left: 5px;
+        }
+
+        .video-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 55px;
+            font-weight: 500;
+            color: white;
+            text-align: center;
+            line-height: 60.5px;
+            max-width: 596px;
+        }
+
+        /* Features Section */
+        .features-section {
+            background: white;
+            padding: 80px 150px;
+            display: flex;
+            justify-content: center;
+            gap: 87px;
+        }
+
+        .feature-item {
+            display: flex;
+            gap: 24px;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            flex-shrink: 0;
+        }
+
+        .feature-text h4 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2C2F24;
+            margin-bottom: 16px;
+        }
+
+        .feature-text p {
+            font-size: 16px;
+            line-height: 24px;
+            color: #414536;
+            max-width: 294px;
+        }
+
+        /* Info Section */
+        .info-section {
+            background: #F9F9F7;
+            padding: 120px 150px;
+        }
+
+        .info-content {
+            display: flex;
+            gap: 90px;
+        }
+
+        .info-text {
+            flex: 1;
+        }
+
+        .info-text h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 55px;
+            font-weight: 500;
+            line-height: 60.5px;
+            color: #2C2F24;
+            margin-bottom: 20px;
+            max-width: 547px;
+        }
+
+        .info-text > p {
+            font-size: 16px;
+            line-height: 24px;
+            color: #414536;
+            max-width: 556px;
+            margin-bottom: 60px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 293px);
+            gap: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid #DBDFD0;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-family: 'Playfair Display', serif;
+            font-size: 55px;
+            font-weight: 500;
+            color: #2C2F24;
+            line-height: 60.5px;
+            margin-bottom: 15px;
+        }
+
+        .stat-label {
+            font-size: 18px;
+            font-weight: 500;
+            color: #414536;
+        }
+
+        .info-images {
+            position: relative;
+            flex-shrink: 0;
+            width: 555px;
+            height: 680px;
+        }
+
+        .info-image {
+            position: absolute;
+            width: 555px;
+            height: 680px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        /* Testimonials */
+        .testimonials-section {
+            background: white;
+            padding: 100px 150px;
+        }
+
+        .testimonials-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 55px;
+            font-weight: 500;
+            color: #2C2F24;
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .testimonials-grid {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+        }
+
+        .testimonial-card {
+            background: #F9F9F7;
+            border-radius: 12px;
+            padding: 45px 35px;
+            width: 416px;
+        }
+
+        .testimonial-quote {
+            font-size: 24px;
+            font-weight: 700;
+            color: #AD343E;
+            margin-bottom: 24px;
+            line-height: 30px;
+        }
+
+        .testimonial-text {
+            font-size: 18px;
+            line-height: 28px;
+            color: #414536;
+            margin-bottom: 32px;
+        }
+
+        .testimonial-divider {
+            width: 100%;
+            height: 1px;
+            background: #DBDFD0;
+            margin-bottom: 32px;
+        }
+
+        .testimonial-author {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .testimonial-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .testimonial-author-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2C2F24;
+        }
+
+        .testimonial-author-location {
+            font-size: 16px;
+            color: #414536;
+        }
+
+        /* Footer */
+        .footer {
+            background: #474747;
+            padding: 120px 150px 85px;
+        }
+
+        .footer-content {
+            display: flex;
+            gap: 135px;
+        }
+
+        .footer-brand {
+            max-width: 293px;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 30px;
+        }
+
+        .footer-logo-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            font-weight: 600;
+            font-style: italic;
+            color: white;
+        }
+
+        .footer-description {
+            font-size: 16px;
+            line-height: 24px;
+            color: #ADB29E;
+            margin-bottom: 30px;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 12px;
+        }
+
+        .footer-social-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+
+        .footer-social-icon:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 120px;
+        }
+
+        .footer-column h4 {
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column ul li {
+            margin-bottom: 20px;
+        }
+
+        .footer-column ul li a {
+            color: #DBDFD0;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        .footer-column ul li a:hover {
+            color: white;
+        }
+
+        .footer-instagram {
+            display: grid;
+            grid-template-columns: repeat(2, 194px);
+            gap: 15px;
+        }
+
+        .footer-instagram-image {
+            width: 194px;
+            height: 170px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.2);
+            margin-top: 54px;
+            padding-top: 40px;
+            text-align: center;
+        }
+
+        .footer-copyright {
+            color: #ADB29E;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-info">
+            <div class="top-bar-item">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                </svg>
+                <span>(414) 857 - 0107</span>
+            </div>
+            <div class="top-bar-item">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                <span>happytummy@restaurant.com</span>
+            </div>
+        </div>
+        <div class="top-bar-social">
+            <a href="#" class="social-icon">𝕏</a>
+            <a href="#" class="social-icon">f</a>
+            <a href="#" class="social-icon">📷</a>
+            <a href="#" class="social-icon">⌘</a>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <svg class="logo-icon" viewBox="0 0 56 55" fill="none">
+                <circle cx="28" cy="27.5" r="25" fill="#AD343E"/>
+                <path d="M28 12C20 12 16 18 16 24C16 30 20 35 28 42C36 35 40 30 40 24C40 18 36 12 28 12Z" fill="white"/>
+                <ellipse cx="28" cy="24" rx="6" ry="5" fill="#AD343E"/>
+            </svg>
+            <span class="logo-text">Sota Yummy</span>
+        </div>
+        <nav class="nav">
+            <a href="Homepage.html" class="nav-link">Home</a>
+            <a href="About.html" class="nav-link active">About</a>
+            <a href="Menu.html" class="nav-link">Menu</a>
+            <a href="Blog.html" class="nav-link">Blog</a>
+            <a href="Homepage.html#contact" class="nav-link">Contact</a>
+        </nav>
+        <button class="btn-book">Take An Order</button>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <div class="hero-image-wrapper">
+                <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=599&h=566&fit=crop" alt="Restaurant interior" class="hero-main-image">
+                <div class="hero-info-card">
+                    <h3>Come and visit us</h3>
+                    <div class="hero-info-item">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                        </svg>
+                        <span>(414) 857 - 0107</span>
+                    </div>
+                    <div class="hero-info-item">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                        <span>happytummy@restaurant.com</span>
+                    </div>
+                    <div class="hero-info-item">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <span>837 W. Marshall Lane Marshalltown, IA 50158, Los Angeles</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-text">
+                <h1>We provide healthy food for your family.</h1>
+                <p>Our story began with a vision to create a unique dining experience that merges fine dining, exceptional service, and a vibrant ambiance. Rooted in city's rich culinary culture, we aim to honor our local roots while infusing a global palate.</p>
+                <p class="description">At place, we believe that dining is not just about food, but also about the overall experience. Our staff, renowned for their warmth and dedication, strives to make every visit an unforgettable event.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Video Section -->
+    <section class="video-section">
+        <div class="video-banner">
+            <div class="video-overlay">
+                <div class="play-button">
+                    <svg viewBox="0 0 24 24" fill="#2C2F24">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                </div>
+                <h2 class="video-text">Feel the authentic & original taste from us</h2>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="feature-item">
+            <svg class="feature-icon" viewBox="0 0 48 48" fill="none">
+                <rect width="48" height="48" rx="8" fill="#F9F9F7"/>
+                <path d="M24 10C20 10 17 14 17 18C17 22 19 25 24 30C29 25 31 22 31 18C31 14 28 10 24 10Z" fill="#AD343E"/>
+                <path d="M14 36H34V38H14V36Z" fill="#2C2F24"/>
+                <path d="M18 32H30V34H18V32Z" fill="#2C2F24"/>
+            </svg>
+            <div class="feature-text">
+                <h4>Multi Cuisine</h4>
+                <p>In the new era of technology we look in the future with certainty life.</p>
+            </div>
+        </div>
+        <div class="feature-item">
+            <svg class="feature-icon" viewBox="0 0 48 48" fill="none">
+                <rect width="48" height="48" rx="8" fill="#F9F9F7"/>
+                <rect x="12" y="14" width="24" height="20" rx="2" stroke="#2C2F24" stroke-width="2" fill="none"/>
+                <path d="M18 22H30M18 28H26" stroke="#AD343E" stroke-width="2"/>
+            </svg>
+            <div class="feature-text">
+                <h4>Easy To Order</h4>
+                <p>In the new era of technology we look in the future with certainty life.</p>
+            </div>
+        </div>
+        <div class="feature-item">
+            <svg class="feature-icon" viewBox="0 0 48 48" fill="none">
+                <circle cx="24" cy="24" r="14" stroke="#2C2F24" stroke-width="2" fill="none"/>
+                <path d="M24 16V24L28 28" stroke="#AD343E" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <div class="feature-text">
+                <h4>Fast Delivery</h4>
+                <p>In the new era of technology we look in the future with certainty life.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Info Section -->
+    <section class="info-section">
+        <div class="info-content">
+            <div class="info-text">
+                <h2>A little information for our valuable guest</h2>
+                <p>At place, we believe that dining is not just about food, but also about the overall experience. Our staff, renowned for their warmth and dedication, strives to make every visit an unforgettable event.</p>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">Locations</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">1995</div>
+                        <div class="stat-label">Founded</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">65+</div>
+                        <div class="stat-label">Staff Members</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Satisfied Customers</div>
+                    </div>
+                </div>
+            </div>
+            <div class="info-images">
+                <img src="https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?w=555&h=680&fit=crop" alt="Chef cooking" class="info-image">
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials-section">
+        <h2 class="testimonials-title">What Our Customers Say</h2>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-quote">"The best restaurant"</div>
+                <p class="testimonial-text">Last night, we dined at place and were simply blown away. From the moment we stepped in, we were enveloped in an inviting atmosphere and greeted with warm smiles.</p>
+                <div class="testimonial-divider"></div>
+                <div class="testimonial-author">
+                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Sophire Robson" class="testimonial-avatar">
+                    <div>
+                        <div class="testimonial-author-name">Sophire Robson</div>
+                        <div class="testimonial-author-location">Los Angeles, CA</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-quote">"Simply delicious"</div>
+                <p class="testimonial-text">Place exceeded my expectations on all fronts. The ambiance was cozy and relaxed, making it a perfect venue for our anniversary dinner. Each dish was prepared and beautifully presented.</p>
+                <div class="testimonial-divider"></div>
+                <div class="testimonial-author">
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Matt Cannon" class="testimonial-avatar">
+                    <div>
+                        <div class="testimonial-author-name">Matt Cannon</div>
+                        <div class="testimonial-author-location">San Diego, CA</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-quote">"One of a kind restaurant"</div>
+                <p class="testimonial-text">The culinary experience at place is first to none. The atmosphere is vibrant, the food - nothing short of extraordinary. The food was the highlight of our evening. Highly recommended.</p>
+                <div class="testimonial-divider"></div>
+                <div class="testimonial-author">
+                    <img src="https://randomuser.me/api/portraits/men/75.jpg" alt="Andy Smith" class="testimonial-avatar">
+                    <div>
+                        <div class="testimonial-author-name">Andy Smith</div>
+                        <div class="testimonial-author-location">San Francisco, CA</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <svg width="56" height="55" viewBox="0 0 56 55" fill="none">
+                        <circle cx="28" cy="27.5" r="25" fill="#AD343E"/>
+                        <path d="M28 12C20 12 16 18 16 24C16 30 20 35 28 42C36 35 40 30 40 24C40 18 36 12 28 12Z" fill="white"/>
+                        <ellipse cx="28" cy="24" rx="6" ry="5" fill="#AD343E"/>
+                    </svg>
+                    <span class="footer-logo-text">Sota Yummy</span>
+                </div>
+                <p class="footer-description">In the new era of technology we look a in the future with certainty and pride to for our company and.</p>
+                <div class="footer-social">
+                    <a href="#" class="footer-social-icon">𝕏</a>
+                    <a href="#" class="footer-social-icon">f</a>
+                    <a href="#" class="footer-social-icon">📷</a>
+                    <a href="#" class="footer-social-icon">⌘</a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <div class="footer-column">
+                    <h4>Pages</h4>
+                    <ul>
+                        <li><a href="Homepage.html">Home</a></li>
+                        <li><a href="About.html">About</a></li>
+                        <li><a href="Menu.html">Menu</a></li>
+                        <li><a href="Menu.html">Pricing</a></li>
+                        <li><a href="Blog.html">Blog</a></li>
+                        <li><a href="Homepage.html#contact">Contact</a></li>
+                        <li><a href="Menu.html">Delivery</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Utility Pages</h4>
+                    <ul>
+                        <li><a href="#">Start Here</a></li>
+                        <li><a href="#">Styleguide</a></li>
+                        <li><a href="#">Password Protected</a></li>
+                        <li><a href="#">404 Not Found</a></li>
+                        <li><a href="#">Licenses</a></li>
+                        <li><a href="#">Changelog</a></li>
+                        <li><a href="#">View More</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h4>Follow Us On Instagram</h4>
+                <div class="footer-instagram">
+                    <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=194&h=170&fit=crop" alt="Instagram" class="footer-instagram-image">
+                    <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=194&h=170&fit=crop" alt="Instagram" class="footer-instagram-image">
+                    <img src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=194&h=170&fit=crop" alt="Instagram" class="footer-instagram-image">
+                    <img src="https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=194&h=170&fit=crop" alt="Instagram" class="footer-instagram-image">
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p class="footer-copyright">Copyright © 2023 Hashtag Developer. All Rights Reserved</p>
+        </div>
+    </footer>
+</body>
+</html>
+

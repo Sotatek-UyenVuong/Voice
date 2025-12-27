@@ -3,42 +3,203 @@ import json
 import unicodedata
 from dataclasses import dataclass, field
 from typing import Annotated, Optional
+import requests
+import asyncio
+import ssl
 
 import yaml
 from dotenv import load_dotenv
 from pydantic import Field
+from aiohttp import web
 
 from livekit.agents import AgentServer, JobContext, cli
 from livekit.agents.llm import function_tool
 from livekit.agents.voice import Agent, AgentSession, RunContext
-from livekit.plugins import cartesia, deepgram, openai, silero, google, elevenlabs
-from livekit.plugins import soniox
+from livekit.plugins import deepgram, openai, silero, google, elevenlabs, soniox
+from livekit.api import AccessToken, VideoGrants, LiveKitAPI, CreateAgentDispatchRequest, CreateRoomRequest, DeleteRoomRequest
+# cartesia not needed - removed to avoid import error
 
 import os
 from dotenv import load_dotenv
 load_dotenv()
-# from livekit.plugins import noise_cancellation
 
+# ==================== TOKEN SERVER CONFIG ====================
+TOKEN_SERVER_PORT = 8089
+AGENT_NAME = "restaurant-bot"
+
+logger = logging.getLogger("restaurant-bot")
+logger.setLevel(logging.INFO)
+
+# ==================== TOKEN SERVER FUNCTIONS ====================
+async def handle_token_request(request: web.Request) -> web.Response:
+    """
+    Create room + dispatch agent + generate token (ALL IN ONE).
+    
+    Flow:
+    1. Create room on LiveKit server
+    2. Dispatch agent to room
+    3. Generate JWT token for user
+    """
+    try:
+        room_name = request.query.get('room', 'default-room')
+        participant_name = request.query.get('name', 'user')
+        
+        api_key = os.getenv("LIVEKIT_API_KEY")
+        api_secret = os.getenv("LIVEKIT_API_SECRET")
+        livekit_url = os.getenv("LIVEKIT_URL")
+        
+        if not api_key or not api_secret:
+            return web.json_response(
+                {"error": "Missing LIVEKIT credentials"}, 
+                status=500
+            )
+        
+        metadata = {"participant_name": participant_name}
+        
+        # ====== STEP 1: Create room on LiveKit server ======
+        async with LiveKitAPI(livekit_url, api_key, api_secret) as lk_api:
+            try:
+                await lk_api.room.create_room(
+                    CreateRoomRequest(
+                        name=room_name,
+                        metadata=json.dumps(metadata),
+                        empty_timeout=300,  # Auto-delete after 5 min empty
+                        max_participants=10
+                    )
+                )
+                logger.info(f"✅ Room created: {room_name}")
+            except Exception as e:
+                logger.warning(f"⚠️ Room may already exist: {e}")
+            
+            # ====== STEP 2: Dispatch agent to room ======
+            try:
+                logger.info(f"🤖 Dispatching agent '{AGENT_NAME}' to room {room_name}...")
+                await lk_api.agent_dispatch.create_dispatch(
+                    CreateAgentDispatchRequest(
+                        agent_name=AGENT_NAME,
+                        room=room_name,
+                        metadata=json.dumps(metadata)
+                    )
+                )
+                logger.info(f"✅ Agent '{AGENT_NAME}' dispatched to room {room_name}!")
+            except Exception as dispatch_error:
+                logger.error(f"❌ Agent dispatch failed: {dispatch_error}")
+        
+        # ====== STEP 3: Generate JWT token ======
+        token = AccessToken(api_key, api_secret)
+        token.with_identity(participant_name)
+        token.with_name(participant_name)
+        token.with_grants(
+            VideoGrants(
+                room_join=True,
+                room=room_name,
+                can_publish=True,
+                can_subscribe=True,
+                can_publish_data=True,
+            )
+        )
+        
+        jwt_token = token.to_jwt()
+        
+        logger.info(f"✅ Token generated | Room: {room_name} | User: {participant_name}")
+        
+        response = web.json_response({
+            "token": jwt_token,
+            "url": livekit_url,
+            "room": room_name,
+            "name": participant_name
+        })
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        return response
+        
+    except Exception as e:
+        logger.error(f"❌ Error generating token: {e}")
+        return web.json_response({"error": str(e)}, status=500)
+
+
+async def handle_delete_room(request: web.Request) -> web.Response:
+    """Delete a LiveKit room when user disconnects"""
+    try:
+        room_name = request.match_info.get('room_name')
+        if not room_name:
+            return web.json_response({"error": "Room name required"}, status=400)
+        
+        api_key = os.getenv("LIVEKIT_API_KEY")
+        api_secret = os.getenv("LIVEKIT_API_SECRET")
+        livekit_url = os.getenv("LIVEKIT_URL")
+        
+        logger.info(f"🗑️ Deleting room: {room_name}")
+        
+        async with LiveKitAPI(livekit_url, api_key, api_secret) as lk_api:
+            await lk_api.room.delete_room(
+                DeleteRoomRequest(room=room_name)
+            )
+        
+        logger.info(f"✅ Room deleted: {room_name}")
+        
+        response = web.json_response({
+            "success": True,
+            "message": f"Room '{room_name}' deleted",
+            "room_name": room_name
+        })
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        return response
+        
+    except Exception as e:
+        logger.error(f"❌ Error deleting room: {e}")
+        return web.json_response({"error": str(e)}, status=500)
+
+
+async def handle_cors(request: web.Request) -> web.Response:
+    """Handle CORS preflight requests"""
+    return web.Response(
+        status=200,
+        headers={
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+        }
+    )
+
+
+async def start_token_server():
+    """Start the HTTP token server"""
+    app = web.Application()
+    app.router.add_get('/api/token', handle_token_request)
+    app.router.add_delete('/api/room/{room_name}', handle_delete_room)
+    app.router.add_options('/api/token', handle_cors)
+    app.router.add_options('/api/room/{room_name}', handle_cors)
+    
+    # Check for SSL certs
+    cert_file = os.path.join(os.path.dirname(__file__), '.cert/server-cert.pem')
+    key_file = os.path.join(os.path.dirname(__file__), '.cert/server-key.pem')
+    
+    ssl_context = None
+    protocol = "http"
+    
+    if os.path.exists(cert_file) and os.path.exists(key_file):
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ssl_context.load_cert_chain(cert_file, key_file)
+        protocol = "https"
+        logger.info("🔒 Token Server: HTTPS enabled")
+    else:
+        logger.info("⚠️ Token Server: Running without HTTPS")
+    
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', TOKEN_SERVER_PORT, ssl_context=ssl_context)
+    await site.start()
+    
+    logger.info(f"🚀 Token Server running at: {protocol}://0.0.0.0:{TOKEN_SERVER_PORT}")
+    logger.info(f"🔗 Token endpoint: {protocol}://localhost:{TOKEN_SERVER_PORT}/api/token?room=<room>&name=<name>")
+
+
+# ==================== RESTAURANT AGENT ====================
 # This example demonstrates a multi-agent system where tasks are delegated to sub-agents
 # based on the user's request.
 #
 # The user is initially connected to a greeter, and depending on their need, the call is
 # handed off to other agents that could help with the more specific tasks.
-# This helps to keep each agent focused on the task at hand, and also reduces costs
-# since only a subset of the tools are used at any given time.
-
-
-logger = logging.getLogger("restaurant-example")
-logger.setLevel(logging.INFO)
-
-load_dotenv()
-
-voices = {
-    "greeter": "794f9389-aac1-45b6-b726-9d9369183238",
-    "reservation": "156fb8d2-335b-4950-9cb3-a2d33befec77",
-    "takeaway": "6f84f4b8-58a2-430c-8c79-688dad597532",
-    "checkout": "39b376fc-488e-4d0c-8b37-e00b72059fdd",
-}
 
 
 @dataclass
@@ -84,6 +245,36 @@ class UserData:
 RunContext_T = RunContext[UserData]
 
 INVENTORY_FILE = "/home/sotatek/Documents/Uyen/demo_voice/inventory.json"
+
+# Telegram configuration
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
+# Helper function to send Telegram notifications
+def send_telegram_notification(message: str) -> bool:
+    """Send notification to Telegram"""
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        logger.warning("⚠️ Telegram not configured. Skipping notification.")
+        return False
+    
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        payload = {
+            "chat_id": TELEGRAM_CHAT_ID,
+            "text": message,
+            "parse_mode": "HTML"
+        }
+        response = requests.post(url, json=payload, timeout=10)
+        
+        if response.status_code == 200:
+            logger.info("✅ Telegram notification sent successfully")
+            return True
+        else:
+            logger.error(f"❌ Telegram API error: {response.status_code} - {response.text}")
+            return False
+    except Exception as e:
+        logger.error(f"❌ Failed to send Telegram notification: {e}")
+        return False
 
 # Inventory management functions
 def load_inventory() -> dict:
@@ -256,6 +447,22 @@ class BaseAgent(Agent):
 
 class Greeter(BaseAgent):
     def __init__(self, menu: str) -> None:
+        # Define tools first so they can be passed to super().__init__
+        @function_tool()
+        async def to_reservation_tool(context: RunContext_T) -> tuple['Agent', str]:
+            """Called when user wants to make or update a reservation.
+            This function handles transitioning to the reservation agent
+            who will collect the necessary details like reservation time,
+            customer name and phone number."""
+            return await self._transfer_to_agent("reservation", context)
+        
+        @function_tool()
+        async def to_takeaway_tool(context: RunContext_T) -> tuple['Agent', str]:
+            """Called when the user wants to place a takeaway order.
+            This includes handling orders for pickup, delivery, or when the user wants to
+            proceed to checkout with their existing order."""
+            return await self._transfer_to_agent("takeaway", context)
+        
         super().__init__(
             instructions=(
                 "🚨🚨🚨 ABSOLUTE CRITICAL RULE - LANGUAGE MATCHING 🚨🚨🚨\n\n"
@@ -267,11 +474,12 @@ class Greeter(BaseAgent):
                 "✅ CORRECT: User: 'Xin chào' → You: 'Xin chào! Tôi có thể giúp gì cho bạn?'\n\n"
                 "❌ WRONG: User: 'Hello' → You: 'Xin chào! What do you need?'\n"
                 "✅ CORRECT: User: 'Hello' → You: 'Hello! How can I help you today?'\n\n"
-                f"You are a friendly Vietnamese restaurant receptionist. Thực đơn / Menu: {menu}\n"
-                "Ask if they want reservation (đặt bàn) or takeaway order (gọi món mang đi), then use tools to transfer."
+                f"You are a friendly Sota Yummy restaurant receptionist. Our Menu:\n{menu}\n"
+                "Ask if they want to make a reservation or place a takeaway order, then use tools to transfer."
             ),
+            tools=[to_reservation_tool, to_takeaway_tool],
             llm=google.LLM(
-                model="gemini-2.5-pro",
+                model="gemini-2.5-flash",
                 api_key=os.getenv("GEMINI_API_KEY")
             ),
             tts=elevenlabs.TTS(
@@ -282,20 +490,6 @@ class Greeter(BaseAgent):
         )
         self.menu = menu
 
-    @function_tool()
-    async def to_reservation(self, context: RunContext_T) -> tuple[Agent, str]:
-        """Called when user wants to make or update a reservation.
-        This function handles transitioning to the reservation agent
-        who will collect the necessary details like reservation time,
-        customer name and phone number."""
-        return await self._transfer_to_agent("reservation", context)
-
-    @function_tool()
-    async def to_takeaway(self, context: RunContext_T) -> tuple[Agent, str]:
-        """Called when the user wants to place a takeaway order.
-        This includes handling orders for pickup, delivery, or when the user wants to
-        proceed to checkout with their existing order."""
-        return await self._transfer_to_agent("takeaway", context)
 
 
 class Reservation(BaseAgent):
@@ -338,6 +532,18 @@ class Reservation(BaseAgent):
         if not userdata.reservation_time:
             return "Please provide reservation time first."
 
+        # Send Telegram notification for reservation
+        telegram_message = (
+            f"📅 <b>ĐẶT BÀN MỚI</b>\n"
+            f"━━━━━━━━━━━━━━━━━━\n"
+            f"👤 <b>Khách hàng:</b> {userdata.customer_name}\n"
+            f"📱 <b>Số điện thoại:</b> {userdata.customer_phone}\n"
+            f"🕐 <b>Thời gian:</b> {userdata.reservation_time}\n"
+            f"━━━━━━━━━━━━━━━━━━\n"
+            f"✅ Đặt bàn đã được xác nhận"
+        )
+        send_telegram_notification(telegram_message)
+
         return await self._transfer_to_agent("greeter", context)
 
 
@@ -348,12 +554,12 @@ class Takeaway(BaseAgent):
                 "🚨🚨🚨 IF USER SPEAKS VIETNAMESE → YOU SPEAK VIETNAMESE\n"
                 "🚨🚨🚨 IF USER SPEAKS ENGLISH → YOU SPEAK ENGLISH\n"
                 "🚨🚨🚨 NEVER MIX LANGUAGES\n\n"
-                f"You take orders. Thực đơn / Menu: {menu}\n"
+                f"You take orders at Sota Yummy. Our Menu:\n{menu}\n"
                 "IMPORTANT: Ask what they want AND HOW MANY of each item.\n"
                 "Example questions:\n"
-                "- 'Bạn muốn mấy tô Phở?' / 'How many Pho bowls would you like?'\n"
-                "- 'Bạn muốn mấy ly Cà phê?' / 'How many Coffees?'\n"
-                "- 'Bạn muốn mấy phần Gỏi cuốn?' / 'How many portions of spring rolls?'\n"
+                "- 'How many Cheeseburgers would you like?'\n"
+                "- 'How many Cappuccinos?'\n"
+                "- 'Would you like any desserts with that?'\n"
                 "Then clarify quantities and confirm the full order with quantities."
             ),
             tools=[to_greeter],
@@ -433,9 +639,9 @@ class Checkout(BaseAgent):
                 "🚨🚨🚨 IF USER SPEAKS VIETNAMESE → YOU SPEAK VIETNAMESE\n"
                 "🚨🚨🚨 IF USER SPEAKS ENGLISH → YOU SPEAK ENGLISH\n"
                 "🚨🚨🚨 NEVER MIX LANGUAGES\n\n"
-                f"You handle checkout. Thực đơn / Menu: {menu}\n"
-                "Confirm the total expense (in VND) and collect customer's name and phone number.\n"
-                "Example: 'Tổng cộng 75.000đ' / 'Total is 75,000 VND'\n"
+                f"You handle checkout at Sota Yummy. Our Menu:\n{menu}\n"
+                "Confirm the total expense (in USD) and collect customer's name and phone number.\n"
+                "Example: 'Your total is $45.99'\n"
                 "Then complete the checkout process."
             ),
             tools=[update_name, update_phone, to_greeter],
@@ -473,6 +679,20 @@ class Checkout(BaseAgent):
             save_inventory(userdata.inventory)
             logger.info(f"Inventory updated after checkout: {userdata.order}")
 
+        # Send Telegram notification with order details
+        order_items = "\n".join([f"  • {qty}x {item}" for item, qty in userdata.order.items()]) if userdata.order else "Không có"
+        telegram_message = (
+            f"🍜 <b>ĐƠN HÀNG MỚI</b>\n"
+            f"━━━━━━━━━━━━━━━━━━\n"
+            f"👤 <b>Khách hàng:</b> {userdata.customer_name}\n"
+            f"📱 <b>Số điện thoại:</b> {userdata.customer_phone}\n"
+            f"\n📦 <b>Đơn hàng:</b>\n{order_items}\n"
+            f"\n💰 <b>Tổng tiền:</b> {userdata.expense:,.0f} VNĐ\n"
+            f"━━━━━━━━━━━━━━━━━━\n"
+            f"✅ Đơn hàng đã được xác nhận"
+        )
+        send_telegram_notification(telegram_message)
+
         userdata.checked_out = True
         return await to_greeter(context)
 
@@ -485,13 +705,57 @@ class Checkout(BaseAgent):
 server = AgentServer()
 
 
-@server.rtc_session()
+@server.rtc_session(agent_name="restaurant-bot")
 async def entrypoint(ctx: JobContext):
-    menu = "Phở: 35k, Bún bò Huế: 40k, Bánh mì: 25k, Cơm tấm: 35k, Gỏi cuốn: 30k, Cà phê sữa đá: 20k"
+    """
+    Explicit Dispatch Mode - Agent joins only when dispatched via API
+    Dispatched automatically by token server when user joins room
+    """
+    logger.info(f"🎯 Agent dispatched to room: {ctx.room.name}")
     
-    # Load inventory from file
+    # Connect to the room first (required for rtc_session)
+    await ctx.connect(auto_subscribe="audio_only")
+    
+    menu = """
+    ========== BREAKFAST (20 items) ==========
+    Sunny Side Up Eggs: $9.99 | Fluffy Pancakes: $11.99 | Belgian Waffles: $12.99
+    Avocado Toast: $13.50 | French Toast: $10.99 | Eggs Benedict: $14.99
+    Veggie Omelette: $11.50 | Breakfast Burrito: $12.99 | Açaí Bowl: $13.99
+    Greek Yogurt Parfait: $8.99 | Smoked Salmon Bagel: $15.99 | Butter Croissant: $6.99
+    Breakfast Sandwich: $10.50 | Steel Cut Oatmeal: $7.99 | Crispy Hash Browns: $5.99
+    Shakshuka: $13.99 | Nutella Crepes: $11.99 | Full English Breakfast: $18.99
+    Huevos Rancheros: $12.99 | Banana Nut Bread: $6.50
+
+    ========== MAIN DISHES (20 items) ==========
+    Classic Cheeseburger: $14.99 | Margherita Pizza: $18.99 | Grilled Salmon: $26.99
+    Pasta Carbonara: $16.99 | Ribeye Steak: $34.99 | Chicken Alfredo: $17.50
+    Fish & Chips: $18.99 | BBQ Baby Back Ribs: $28.99 | Chicken Parmesan: $19.99
+    Street Tacos: $14.99 | Lobster Tail: $22.99 | Spaghetti Bolognese: $15.99
+    Grilled Lamb Chops: $32.99 | Shrimp Scampi: $24.99 | Herb Roasted Chicken: $21.99
+    Grilled Pork Chops: $23.99 | Butter Chicken: $18.99 | Pad Thai: $16.99
+    Beef Lasagna: $17.99 | Grilled Chicken Salad: $13.99
+
+    ========== DRINKS (20 items) ==========
+    Mint Lemonade: $5.99 | Classic Mojito: $12.99 | Fresh Orange Juice: $6.50
+    Iced Caramel Latte: $5.50 | Mixed Berry Smoothie: $7.99 | Matcha Latte: $5.99
+    Classic Margarita: $11.99 | Chocolate Milkshake: $8.99 | Double Espresso: $3.99
+    Piña Colada: $13.99 | Hot Chocolate: $5.50 | Cappuccino: $4.99
+    Green Detox Smoothie: $8.50 | Red Wine Sangria: $10.99 | Peach Iced Tea: $4.50
+    Mango Lassi: $6.99 | Whiskey Sour: $13.99 | Vanilla Latte: $5.50
+    Fresh Coconut Water: $5.99 | Arnold Palmer: $4.99
+
+    ========== DESSERTS (20 items) ==========
+    Chocolate Gelato: $8.99 | NY Cheesecake: $9.99 | Glazed Donuts: $6.99
+    Classic Tiramisu: $10.99 | Crème Brûlée: $11.50 | Molten Lava Cake: $12.99
+    Fresh Fruit Tart: $8.99 | Red Velvet Cake: $9.50 | Apple Pie: $7.99
+    Vanilla Panna Cotta: $9.99 | French Macarons (6pc): $12.99 | Fudge Brownies: $6.99
+    Churros: $7.50 | Banana Split: $10.99 | Key Lime Pie: $8.99
+    Profiteroles: $9.50 | Carrot Cake: $8.50 | Affogato: $7.99
+    Chocolate Chip Cookies: $5.99 | Mango Sticky Rice: $9.99
+    """
+    
+    # Load inventory
     inventory = load_inventory()
-    logger.info(f"Loaded inventory: {inventory}")
     
     userdata = UserData()
     userdata.inventory = inventory
@@ -503,33 +767,73 @@ async def entrypoint(ctx: JobContext):
             "checkout": Checkout(menu),
         }
     )
+    
     session = AgentSession[UserData](
         userdata=userdata,
         # Google Gemini model - direct API
         llm=google.LLM(
-            model="gemini-2.5-pro",
+            model="gemini-2.5-flash",
             api_key=os.getenv("GEMINI_API_KEY")
         ),
         # Soniox STT with language detection for Vietnamese and English
         stt=soniox.STT(
             api_key=os.getenv("SONIOX_API_KEY"),
         ),
-        tts=elevenlabs.TTS(
-            api_key=os.getenv("ELEVENLABS_API_KEY"),
-            voice_id="Xb7hH8MSUJpSbSDYk0k2",
-            model="eleven_turbo_v2_5"
+        tts=openai.TTS(
+            voice="nova",
+            api_key=os.getenv("OPENAI_API_KEY"),
         ),
         vad=silero.VAD.load(),
-        max_tool_steps=5,
+        max_tool_steps=1,
     )
-
+    
+    logger.info(f"✅ Agent ready in room: {ctx.room.name}")
+    
     await session.start(
         agent=userdata.agents["greeter"],
         room=ctx.room,
     )
 
-    # await agent.say("Welcome to our restaurant! How may I assist you today?")
+
+async def main():
+    """Start both Token Server and Agent Server"""
+    # Start Token Server first
+    await start_token_server()
+    logger.info("="*60)
+    logger.info("🍜 Restaurant Bot - All-in-One Server")
+    logger.info("="*60)
+    logger.info(f"📡 Token Server: https://localhost:{TOKEN_SERVER_PORT}/api/token")
+    logger.info(f"🤖 Agent Name: {AGENT_NAME}")
+    logger.info("="*60)
 
 
 if __name__ == "__main__":
-    cli.run_app(server) 
+    import sys
+    
+    # Check if running with cli args (dev mode)
+    if len(sys.argv) > 1:
+        # Start token server in background, then run agent
+        import threading
+        
+        def run_token_server():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(start_token_server())
+            loop.run_forever()
+        
+        # Start token server in background thread
+        token_thread = threading.Thread(target=run_token_server, daemon=True)
+        token_thread.start()
+        
+        logger.info("="*60)
+        logger.info("🍜 Restaurant Bot - All-in-One Server")
+        logger.info("="*60)
+        logger.info(f"📡 Token Server: https://localhost:{TOKEN_SERVER_PORT}/api/token")
+        logger.info(f"🤖 Agent Name: {AGENT_NAME}")
+        logger.info("="*60)
+        
+        # Run agent with CLI
+        cli.run_app(server)
+    else:
+        # Just run token server standalone
+        asyncio.run(main()) 

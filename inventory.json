@@ -1,32 +1,402 @@
 {
-  "pho": {
-    "name": "Phở",
-    "price": 35000,
-    "quantity": 15
+  "sunny side up eggs": {
+    "name": "Sunny Side Up Eggs",
+    "price": 9.99,
+    "quantity": 100
   },
-  "bun bo hue": {
-    "name": "Bún bò Huế",
-    "price": 40000,
-    "quantity": 12
+  "fluffy pancakes": {
+    "name": "Fluffy Pancakes",
+    "price": 11.99,
+    "quantity": 100
   },
-  "banh mi": {
-    "name": "Bánh mì",
-    "price": 25000,
-    "quantity": 20
+  "belgian waffles": {
+    "name": "Belgian Waffles",
+    "price": 12.99,
+    "quantity": 100
   },
-  "com tam": {
-    "name": "Cơm tấm",
-    "price": 35000,
-    "quantity": 15
+  "avocado toast": {
+    "name": "Avocado Toast",
+    "price": 13.5,
+    "quantity": 100
   },
-  "goi cuon": {
-    "name": "Gỏi cuốn",
-    "price": 30000,
-    "quantity": 18
+  "french toast": {
+    "name": "French Toast",
+    "price": 10.99,
+    "quantity": 100
   },
-  "ca phe sua da": {
-    "name": "Cà phê sữa đá",
-    "price": 20000,
-    "quantity": 25
+  "eggs benedict": {
+    "name": "Eggs Benedict",
+    "price": 14.99,
+    "quantity": 100
+  },
+  "veggie omelette": {
+    "name": "Veggie Omelette",
+    "price": 11.5,
+    "quantity": 100
+  },
+  "breakfast burrito": {
+    "name": "Breakfast Burrito",
+    "price": 12.99,
+    "quantity": 100
+  },
+  "acai bowl": {
+    "name": "A\u00e7a\u00ed Bowl",
+    "price": 13.99,
+    "quantity": 100
+  },
+  "greek yogurt parfait": {
+    "name": "Greek Yogurt Parfait",
+    "price": 8.99,
+    "quantity": 100
+  },
+  "smoked salmon bagel": {
+    "name": "Smoked Salmon Bagel",
+    "price": 15.99,
+    "quantity": 80
+  },
+  "butter croissant": {
+    "name": "Butter Croissant",
+    "price": 6.99,
+    "quantity": 150
+  },
+  "breakfast sandwich": {
+    "name": "Breakfast Sandwich",
+    "price": 10.5,
+    "quantity": 100
+  },
+  "steel cut oatmeal": {
+    "name": "Steel Cut Oatmeal",
+    "price": 7.99,
+    "quantity": 100
+  },
+  "crispy hash browns": {
+    "name": "Crispy Hash Browns",
+    "price": 5.99,
+    "quantity": 200
+  },
+  "shakshuka": {
+    "name": "Shakshuka",
+    "price": 13.99,
+    "quantity": 80
+  },
+  "nutella crepes": {
+    "name": "Nutella Crepes",
+    "price": 11.99,
+    "quantity": 100
+  },
+  "full english breakfast": {
+    "name": "Full English Breakfast",
+    "price": 18.99,
+    "quantity": 60
+  },
+  "huevos rancheros": {
+    "name": "Huevos Rancheros",
+    "price": 12.99,
+    "quantity": 80
+  },
+  "banana nut bread": {
+    "name": "Banana Nut Bread",
+    "price": 6.5,
+    "quantity": 120
+  },
+  "classic cheeseburger": {
+    "name": "Classic Cheeseburger",
+    "price": 14.99,
+    "quantity": 200
+  },
+  "margherita pizza": {
+    "name": "Margherita Pizza",
+    "price": 18.99,
+    "quantity": 147
+  },
+  "grilled salmon": {
+    "name": "Grilled Salmon",
+    "price": 26.99,
+    "quantity": 80
+  },
+  "pasta carbonara": {
+    "name": "Pasta Carbonara",
+    "price": 16.99,
+    "quantity": 150
+  },
+  "ribeye steak": {
+    "name": "Ribeye Steak",
+    "price": 34.99,
+    "quantity": 50
+  },
+  "chicken alfredo": {
+    "name": "Chicken Alfredo",
+    "price": 17.5,
+    "quantity": 120
+  },
+  "fish and chips": {
+    "name": "Fish & Chips",
+    "price": 18.99,
+    "quantity": 120
+  },
+  "bbq baby back ribs": {
+    "name": "BBQ Baby Back Ribs",
+    "price": 28.99,
+    "quantity": 60
+  },
+  "chicken parmesan": {
+    "name": "Chicken Parmesan",
+    "price": 19.99,
+    "quantity": 100
+  },
+  "street tacos": {
+    "name": "Street Tacos",
+    "price": 14.99,
+    "quantity": 200
+  },
+  "lobster tail": {
+    "name": "Lobster Tail",
+    "price": 22.99,
+    "quantity": 40
+  },
+  "spaghetti bolognese": {
+    "name": "Spaghetti Bolognese",
+    "price": 15.99,
+    "quantity": 150
+  },
+  "grilled lamb chops": {
+    "name": "Grilled Lamb Chops",
+    "price": 32.99,
+    "quantity": 50
+  },
+  "shrimp scampi": {
+    "name": "Shrimp Scampi",
+    "price": 24.99,
+    "quantity": 80
+  },
+  "herb roasted chicken": {
+    "name": "Herb Roasted Chicken",
+    "price": 21.99,
+    "quantity": 100
+  },
+  "grilled pork chops": {
+    "name": "Grilled Pork Chops",
+    "price": 23.99,
+    "quantity": 80
+  },
+  "butter chicken": {
+    "name": "Butter Chicken",
+    "price": 18.99,
+    "quantity": 100
+  },
+  "pad thai": {
+    "name": "Pad Thai",
+    "price": 16.99,
+    "quantity": 120
+  },
+  "beef lasagna": {
+    "name": "Beef Lasagna",
+    "price": 17.99,
+    "quantity": 100
+  },
+  "grilled chicken salad": {
+    "name": "Grilled Chicken Salad",
+    "price": 13.99,
+    "quantity": 150
+  },
+  "mint lemonade": {
+    "name": "Mint Lemonade",
+    "price": 5.99,
+    "quantity": 500
+  },
+  "classic mojito": {
+    "name": "Classic Mojito",
+    "price": 12.99,
+    "quantity": 300
+  },
+  "fresh orange juice": {
+    "name": "Fresh Orange Juice",
+    "price": 6.5,
+    "quantity": 400
+  },
+  "iced caramel latte": {
+    "name": "Iced Caramel Latte",
+    "price": 5.5,
+    "quantity": 500
+  },
+  "mixed berry smoothie": {
+    "name": "Mixed Berry Smoothie",
+    "price": 7.99,
+    "quantity": 300
+  },
+  "matcha latte": {
+    "name": "Matcha Latte",
+    "price": 5.99,
+    "quantity": 400
+  },
+  "classic margarita": {
+    "name": "Classic Margarita",
+    "price": 11.99,
+    "quantity": 300
+  },
+  "chocolate milkshake": {
+    "name": "Chocolate Milkshake",
+    "price": 8.99,
+    "quantity": 400
+  },
+  "double espresso": {
+    "name": "Double Espresso",
+    "price": 3.99,
+    "quantity": 600
+  },
+  "pina colada": {
+    "name": "Pi\u00f1a Colada",
+    "price": 13.99,
+    "quantity": 250
+  },
+  "hot chocolate": {
+    "name": "Hot Chocolate",
+    "price": 5.5,
+    "quantity": 400
+  },
+  "cappuccino": {
+    "name": "Cappuccino",
+    "price": 4.99,
+    "quantity": 600
+  },
+  "green detox smoothie": {
+    "name": "Green Detox Smoothie",
+    "price": 8.5,
+    "quantity": 300
+  },
+  "red wine sangria": {
+    "name": "Red Wine Sangria",
+    "price": 10.99,
+    "quantity": 200
+  },
+  "peach iced tea": {
+    "name": "Peach Iced Tea",
+    "price": 4.5,
+    "quantity": 500
+  },
+  "mango lassi": {
+    "name": "Mango Lassi",
+    "price": 6.99,
+    "quantity": 350
+  },
+  "whiskey sour": {
+    "name": "Whiskey Sour",
+    "price": 13.99,
+    "quantity": 250
+  },
+  "vanilla latte": {
+    "name": "Vanilla Latte",
+    "price": 5.5,
+    "quantity": 500
+  },
+  "fresh coconut water": {
+    "name": "Fresh Coconut Water",
+    "price": 5.99,
+    "quantity": 300
+  },
+  "arnold palmer": {
+    "name": "Arnold Palmer",
+    "price": 4.99,
+    "quantity": 400
+  },
+  "chocolate gelato": {
+    "name": "Chocolate Gelato",
+    "price": 8.99,
+    "quantity": 200
+  },
+  "ny cheesecake": {
+    "name": "NY Cheesecake",
+    "price": 9.99,
+    "quantity": 150
+  },
+  "glazed donuts": {
+    "name": "Glazed Donuts",
+    "price": 6.99,
+    "quantity": 300
+  },
+  "classic tiramisu": {
+    "name": "Classic Tiramisu",
+    "price": 10.99,
+    "quantity": 120
+  },
+  "creme brulee": {
+    "name": "Cr\u00e8me Br\u00fbl\u00e9e",
+    "price": 11.5,
+    "quantity": 100
+  },
+  "molten lava cake": {
+    "name": "Molten Lava Cake",
+    "price": 12.99,
+    "quantity": 100
+  },
+  "fresh fruit tart": {
+    "name": "Fresh Fruit Tart",
+    "price": 8.99,
+    "quantity": 150
+  },
+  "red velvet cake": {
+    "name": "Red Velvet Cake",
+    "price": 9.5,
+    "quantity": 120
+  },
+  "apple pie": {
+    "name": "Apple Pie",
+    "price": 7.99,
+    "quantity": 200
+  },
+  "vanilla panna cotta": {
+    "name": "Vanilla Panna Cotta",
+    "price": 9.99,
+    "quantity": 120
+  },
+  "french macarons": {
+    "name": "French Macarons (6pc)",
+    "price": 12.99,
+    "quantity": 100
+  },
+  "fudge brownies": {
+    "name": "Fudge Brownies",
+    "price": 6.99,
+    "quantity": 250
+  },
+  "churros": {
+    "name": "Churros",
+    "price": 7.5,
+    "quantity": 200
+  },
+  "banana split": {
+    "name": "Banana Split",
+    "price": 10.99,
+    "quantity": 150
+  },
+  "key lime pie": {
+    "name": "Key Lime Pie",
+    "price": 8.99,
+    "quantity": 120
+  },
+  "profiteroles": {
+    "name": "Profiteroles",
+    "price": 9.5,
+    "quantity": 100
+  },
+  "carrot cake": {
+    "name": "Carrot Cake",
+    "price": 8.5,
+    "quantity": 150
+  },
+  "affogato": {
+    "name": "Affogato",
+    "price": 7.99,
+    "quantity": 200
+  },
+  "chocolate chip cookies": {
+    "name": "Chocolate Chip Cookies",
+    "price": 5.99,
+    "quantity": 400
+  },
+  "mango sticky rice": {
+    "name": "Mango Sticky Rice",
+    "price": 9.99,
+    "quantity": 100
   }
 }

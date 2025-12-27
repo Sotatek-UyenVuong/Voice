@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Token server for LiveKit Voice Agent web client
-Serves token generation API at http://localhost:8000
+Token server for LiveKit Voice Agent web client with Explicit Agent Dispatch
+Serves token generation API at https://localhost:8088
 """
 
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -9,10 +9,54 @@ from urllib.parse import urlparse, parse_qs
 import json
 import os
 import ssl
-from livekit.api import AccessToken, VideoGrants
+import asyncio
+import threading
+from livekit.api import AccessToken, VideoGrants, LiveKitAPI, CreateAgentDispatchRequest
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Agent configuration
+AGENT_NAME = "restaurant-bot"
+
+async def dispatch_agent_to_room(room_name: str, metadata: dict = None):
+    """
+    Dispatch agent to room using explicit dispatch
+    This runs asynchronously after token generation
+    """
+    lk_api = LiveKitAPI(
+        url=os.getenv("LIVEKIT_URL"),
+        api_key=os.getenv("LIVEKIT_API_KEY"),
+        api_secret=os.getenv("LIVEKIT_API_SECRET")
+    )
+    
+    try:
+        print(f"🤖 Dispatching agent '{AGENT_NAME}' to room {room_name}...")
+        await lk_api.agent_dispatch.create_dispatch(
+            CreateAgentDispatchRequest(
+                agent_name=AGENT_NAME,
+                room=room_name,
+                metadata=json.dumps(metadata or {})
+            )
+        )
+        print(f"✅ Agent '{AGENT_NAME}' dispatched to room {room_name}!")
+    except Exception as dispatch_error:
+        print(f"❌ Agent dispatch failed: {dispatch_error}")
+        # Don't fail - agent might auto-join anyway
+    finally:
+        await lk_api.aclose()
+
+
+def dispatch_agent_background(room_name: str, metadata: dict = None):
+    """
+    Run agent dispatch in background thread
+    """
+    def run_async():
+        asyncio.run(dispatch_agent_to_room(room_name, metadata))
+    
+    thread = threading.Thread(target=run_async, daemon=True)
+    thread.start()
+
 
 class TokenHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -73,6 +117,15 @@ class TokenHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response).encode())
             
             print(f"✅ Token generated for room={room_name}, name={participant_name}")
+            
+            # Dispatch agent to room (explicit dispatch)
+            dispatch_agent_background(
+                room_name=room_name,
+                metadata={
+                    "participant_name": participant_name,
+                    "timestamp": str(os.times().elapsed)
+                }
+            )
             
         except Exception as e:
             print(f"❌ Error generating token: {e}")
